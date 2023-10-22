@@ -1,4 +1,4 @@
-#include <stdio.h>
+ï»¿#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
@@ -7,7 +7,7 @@
 #define SCREEN_WIDTH	(11)
 #define SCREEN_HEIGHT	(24)
 
-#define FPS			(50)
+#define FPS			(10)
 #define INTERVAL	(1000 / FPS)
 
 #define ATOMIC_COLUWN	(11)
@@ -33,13 +33,14 @@ typedef struct {
 
 typedef struct {
 	int x, y;
+	bool isNone;
 }ATOMIC;
 
 typedef struct {
 	int x, y;
 }PLAYER;
 
-//ƒxƒNƒgƒ‹
+//ãƒ™ã‚¯ãƒˆãƒ«
 VEC2 directions[] = {
 	{1,0},//DIRECTION_RIGHT,
 	{0,1},//DIRECTION_DOWN,
@@ -48,13 +49,13 @@ VEC2 directions[] = {
 
 //AA
 const char* tileAA[TILE_MAX] = {
-	"@",	//TILE_NONE
-	"Z",	//TILE_ATOMIC
-	"£",	//TILE_PLAYER
+	"ã€€",	//TILE_NONE
+	"ã€‡",	//TILE_ATOMIC
+	"â–²",	//TILE_PLAYER
 };
 
 
-//’è‹`
+//å®šç¾©
 int screen[SCREEN_HEIGHT][SCREEN_WIDTH];
 ATOMIC atomic[ATOMIC_ROW][ATOMIC_COLUWN];
 PLAYER player;
@@ -63,20 +64,25 @@ int atomicDirection;
 int atomicCount;
 
 
-//•`‰æ
+//æç”»
 void DrawScreen() {
-	//è¦Î‚ªˆÚ“®‚·‚éÛ‚Éc‚éc‘œ‚ğÁ‚·
+	//éš•çŸ³ãŒç§»å‹•ã™ã‚‹éš›ã«æ®‹ã‚‹æ®‹åƒã‚’æ¶ˆã™
 	memset(screen, 0, sizeof screen);
-	//è¦Î‚ğ•`‰æ
+	//éš•çŸ³ã‚’æç”»
 	for (int y = 0; y < ATOMIC_ROW; y++)
 		for (int x = 0; x < ATOMIC_COLUWN; x++)
-			screen[atomic[y][x].y][atomic[y][x].x] = TILE_ATOMIC;
+			if (!atomic[y][x].isNone) {
+				screen[atomic[y][x].y][atomic[y][x].x] = TILE_ATOMIC;
+			}
+			else {
+				screen[atomic[y][x].y][atomic[y][x].x] = TILE_NONE;
+			}
 
-	//ƒvƒŒƒCƒ„[‚ğ•`‰æ
+	//ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã‚’æç”»
 	screen[player.y][player.x] = TILE_PLAYER;
 
 	system("cls");
-	//ƒ}ƒbƒv‚ğ•`‰æ
+	//ãƒãƒƒãƒ—ã‚’æç”»
 	for (int y = 0; y < SCREEN_HEIGHT; y++) {
 		for (int x = 0; x < SCREEN_WIDTH; x++)
 			printf("%s", tileAA[screen[y][x]]);
@@ -84,39 +90,57 @@ void DrawScreen() {
 	}
 }
 
-//‰Šú‰»
+//åˆæœŸåŒ–
 void Init() {
-	//ƒCƒ“ƒx[ƒ_[‚Ì‰ŠúˆÊ’u
-	for (int y = 0; y < ATOMIC_ROW; y++)
-		for (int x = 0; x < ATOMIC_COLUWN; x++) {
-			//1‚Â‚¨‚«‚ÉƒCƒ“ƒx[ƒ_[‚ğİ’u‚·‚é
+	// ç¾åœ¨ã®æ™‚é–“ã‚’ä½¿ã£ã¦ãƒ©ãƒ³ãƒ€ãƒ ãªã‚·ãƒ¼ãƒ‰ã‚’è¨­å®š
+	srand(time(NULL));
+
+	// éš•çŸ³ã®åˆæœŸç”Ÿæˆ
+	int y = 0;
+	for (int x = 0; x < ATOMIC_COLUWN; x++) {
+		if (rand() % 2)
+			atomic[y][x].isNone = true;
+		else {
+			atomic[y][x].isNone = false;
 			atomic[y][x].x = x;
 			atomic[y][x].y = y;
 		}
+	}
 
-	//è¦Î‚ÌÅ‰‚ÌŒü‚«
+	//éš•çŸ³ã®æœ€åˆã®å‘ã
 	atomicDirection = DIRECTION_DOWN;
 	atomicCount = 0;
 
-	//ƒvƒŒƒCƒ„[‚Ì‰ŠúˆÊ’u
+	//ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®åˆæœŸä½ç½®
 	player.x = SCREEN_WIDTH / 2;
 	player.y = SCREEN_HEIGHT - 2;
 
 	DrawScreen();
 }
 
-//ƒvƒŒƒCƒ„[‚Ì“–‚½‚è”»’è
+//ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®å½“ãŸã‚Šåˆ¤å®š
 bool AtomicIntersectPlayer() {
 	for (int y = 0; y < ATOMIC_ROW; y++)
 		for (int x = 0; x < ATOMIC_COLUWN; x++)
 			if ((atomic[y][x].x == player.x)
-				&& (atomic[y][x].y == player.y)) {
+				&& (atomic[y][x].y == player.y)
+				&& (!atomic[y][x].isNone)) {
 				return true;
-		}
+			}
 	return false;
 }
 
-//ƒƒCƒ“
+//éš•çŸ³ãŒç”»é¢å¤–ã¸è¡Œã£ãŸã‚‰å‰Šé™¤
+void AtomicOffScreen() {
+	for (int y = 0; y < ATOMIC_ROW; y++)
+		for (int x = 0; x < ATOMIC_COLUWN; x++)
+			if (atomic[y][x].y < 0) {
+				atomic[y][x].isNone = true;
+				printf("ç”»é¢å¤–");
+			}
+}
+
+//ãƒ¡ã‚¤ãƒ³
 int main() {
 	Init();
 
@@ -127,32 +151,29 @@ int main() {
 		if (nowClock >= lastClock + INTERVAL) {
 			lastClock = nowClock;
 
-			//ƒCƒ“ƒx[ƒ_[‚Í10ƒJƒEƒ“ƒg‚É‚Â‚«1‰ñ“®‚­
-			atomicCount++;
-			if (atomicCount > 10) {
-				atomicCount = 0;
 
-				int nextDirection = atomicDirection;
-				//ƒCƒ“ƒx[ƒ_[‚Ì‹““®
-				for (int y = 0; y < ATOMIC_ROW; y++)
-					for (int x = 0; x < ATOMIC_COLUWN; x++) {
+			//éš•çŸ³ã®æŒ™å‹•
+			for (int y = 0; y < ATOMIC_ROW; y++)
+				for (int x = 0; x < ATOMIC_COLUWN; x++) {
 
-						atomic[y][x].x += directions[atomicDirection].x;
-						atomic[y][x].y += directions[atomicDirection].y;
-					}
-			}
+					//atomic[y][x].x += directions[atomicDirection].x;
+					atomic[y][x].y += 1;
+				}
 
-			//’e‚ªƒvƒŒƒCƒ„[‚É“–‚½‚Á‚½‚çƒQ[ƒ€ƒI[ƒo[
+
+			//éš•çŸ³ãŒãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã«å½“ãŸã£ãŸã‚‰ã‚²ãƒ¼ãƒ ã‚ªãƒ¼ãƒãƒ¼
 			if (AtomicIntersectPlayer()) {
 				Init();
 				lastClock = clock();
 				continue;
 			}
 
+			AtomicOffScreen();
+
 			DrawScreen();
 		}
 
-		//ƒvƒŒƒCƒ„[‚Ì‘€ì
+		//ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®æ“ä½œ
 		if (_kbhit()) {
 			switch (_getch())
 			{
