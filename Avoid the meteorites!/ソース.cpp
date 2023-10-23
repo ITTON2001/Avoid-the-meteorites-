@@ -10,8 +10,8 @@
 #define FPS			(3)
 #define INTERVAL	(1000 / FPS)
 
-#define ATOMIC_COLUWN	(11)
-#define ATOMIC_ROW		(24)
+#define METEORITE_COLUWN	(11)
+#define METEORITE_ROW		(24)
 
 enum {
 	TILE_NONE,
@@ -27,25 +27,16 @@ enum {
 	DIRECTION_MAX
 };
 
-typedef struct {
-	int x, y;
-}VEC2;
 
 typedef struct {
 	int x, y;
 	bool isNone;
-}ATOMIC;
+}METEORITE;
 
 typedef struct {
 	int x, y;
 }PLAYER;
 
-//ベクトル
-VEC2 directions[] = {
-	{1,0},//DIRECTION_RIGHT,
-	{0,1},//DIRECTION_DOWN,
-	{-1,0},//DIRECTION_LEFT,
-};
 
 //AA
 const char* tileAA[TILE_MAX] = {
@@ -57,24 +48,21 @@ const char* tileAA[TILE_MAX] = {
 
 //定義
 int screen[SCREEN_HEIGHT][SCREEN_WIDTH];
-ATOMIC atomic[ATOMIC_ROW][ATOMIC_COLUWN];
+METEORITE meteorite[METEORITE_ROW][METEORITE_COLUWN];
 PLAYER player;
-
-int atomicDirection;
-int atomicCount;
 
 //描画
 void DrawScreen() {
 	//隕石が移動する際に残る残像を消す
 	memset(screen, 0, sizeof screen);
 	//隕石を描画
-	for (int y = 0; y < ATOMIC_ROW; y++){
-		for (int x = 0; x < ATOMIC_COLUWN; x++) {
-			if (!atomic[y][x].isNone) {
-				screen[atomic[y][x].y][atomic[y][x].x] = TILE_ATOMIC;
+	for (int y = 0; y < METEORITE_ROW; y++){
+		for (int x = 0; x < METEORITE_COLUWN; x++) {
+			if (!meteorite[y][x].isNone) {
+				screen[meteorite[y][x].y][meteorite[y][x].x] = TILE_ATOMIC;
 			}
 			else {
-				screen[atomic[y][x].y][atomic[y][x].x] = TILE_NONE;
+				screen[meteorite[y][x].y][meteorite[y][x].x] = TILE_NONE;
 			}
 		}
 	}
@@ -87,8 +75,6 @@ void DrawScreen() {
 	for (int y = 0; y < SCREEN_HEIGHT; y++) {
 		for (int x = 0; x < SCREEN_WIDTH; x++)
 			printf("%s", tileAA[screen[y][x]]);
-			//printf("%d", screen[y][x]);
-			//printf("%d,%d", atomic[y][x].y,atomic[y][x].x);
 		printf("\n");
 	}
 }
@@ -104,12 +90,12 @@ void Init() {
 	// 隕石の初期生成
 	for (int y = 0; y < SCREEN_HEIGHT; y++) {
 		for (int x = 0; x < SCREEN_WIDTH; x++) {
-			atomic[y][x].x = x;
-			atomic[y][x].y = y;
-			if (atomic[y][x].y == 0 && atomic[y][x].x != randomNumber)
-				atomic[y][x].isNone = false;
+			meteorite[y][x].x = x;
+			meteorite[y][x].y = y;
+			if (meteorite[y][x].y == 0 && meteorite[y][x].x != randomNumber)
+				meteorite[y][x].isNone = false;
 			else
-				atomic[y][x].isNone = true;		
+				meteorite[y][x].isNone = true;
 
 		}
 		
@@ -125,11 +111,11 @@ void Init() {
 
 //プレイヤーの当たり判定
 bool AtomicIntersectPlayer() {
-	for (int y = 0; y < ATOMIC_ROW; y++)
-		for (int x = 0; x < ATOMIC_COLUWN; x++)
-			if ((atomic[y][x].x == player.x)
-				&& (atomic[y][x].y == player.y)
-				&& (!atomic[y][x].isNone)) {
+	for (int y = 0; y < METEORITE_ROW; y++)
+		for (int x = 0; x < METEORITE_COLUWN; x++)
+			if ((meteorite[y][x].x == player.x)
+				&& (meteorite[y][x].y == player.y)
+				&& (!meteorite[y][x].isNone)) {
 				return true;
 			}
 	return false;
@@ -151,12 +137,12 @@ int main() {
 			Atomatic_count += 1;
 
 			//隕石の挙動			
-			for (int y = ATOMIC_ROW - 1; y >= 0; y--) {
-				for (int x = 0; x < ATOMIC_COLUWN; x++) {
-					if (!atomic[y][x].isNone) {
+			for (int y = METEORITE_ROW - 1; y >= 0; y--) {
+				for (int x = 0; x < METEORITE_COLUWN; x++) {
+					if (!meteorite[y][x].isNone) {
 						check_count += 1;
-						atomic[y][x].isNone = true;
-						atomic[y + 1][x].isNone = false;
+						meteorite[y][x].isNone = true;
+						meteorite[y + 1][x].isNone = false;
 					}
 				}
 			}
@@ -170,10 +156,10 @@ int main() {
 
 				for (int y = 0; y < SCREEN_HEIGHT; y++) {
 					for (int x = 0; x < SCREEN_WIDTH; x++) {
-						atomic[y][x].x = x;
-						atomic[y][x].y = y;
-						if (atomic[y][x].y == 0 && atomic[y][x].x != randomNumber)
-							atomic[y][x].isNone = false;
+						meteorite[y][x].x = x;
+						meteorite[y][x].y = y;
+						if (meteorite[y][x].y == 0 && meteorite[y][x].x != randomNumber)
+							meteorite[y][x].isNone = false;
 					}
 				}
 			}
